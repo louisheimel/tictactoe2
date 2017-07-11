@@ -35,11 +35,12 @@ class Board extends Component {
     this.state = {
       board: new Array(9).fill(''),
       marker: 'x',
+      userClick: true
     }
   }
 
   reset = () => {
-    this.setState({ board: new Array(9).fill(''), marker: 'x' })
+    this.setState({ board: new Array(9).fill(''), marker: 'x', userClick: true })
   }
   mark = (i, cb) => {
     this.setState({
@@ -60,28 +61,38 @@ class Board extends Component {
       return winningSequences.map(seq => [this.state.board[seq[0]],this.state.board[seq[1]],this.state.board[seq[2]]])
                       .map(seq => seq[0] === seq[1] && seq[1] === seq[2] && seq[0] === seq[2] && seq[0] !== '').filter(e => e).length > 0
     }
-
-    this.mark(i, () => {
-      if (gameOver()) {
-        alert('you won!')
-        this.reset()
-      } else if(this.fullBoard()) {
-        alert('cat\'s game')
-        this.reset()
-      } else {
-        //computer move
-        //get indices of unfilled squares
-        const unfilled = this.state.board.reduce((a, e, i) => { if (e === '') { return a.concat(i) } else { return a } }, [])
-        //get random unfilled square index
-        const randomUnfilled = underscore.sample(unfilled)
-        this.mark(randomUnfilled, () => {
-          if (gameOver()) {
-            alert('computer won...')
+    if (this.state.userClick) {
+      this.mark(i, () => {
+        if (gameOver()) {
+          this.setState({ userClick: false })
+          setTimeout(() => {
+            alert('you won!')
             this.reset()
-          }
-        })
-      }
-    })
+          }, 1000)
+        } else if(this.fullBoard()) {
+          this.setState({ userClick: false })
+          setTimeout(() => {
+            alert('cat\'s game')
+            this.reset()
+          }, 1000)
+        } else {
+          //computer move
+          //get indices of unfilled squares
+          const unfilled = this.state.board.reduce((a, e, i) => { if (e === '') { return a.concat(i) } else { return a } }, [])
+          //get random unfilled square index
+          const randomUnfilled = underscore.sample(unfilled)
+          this.mark(randomUnfilled, () => {
+            if (gameOver()) {
+              this.setState({ userClick: false })
+              setTimeout(() => {
+                alert('computer won...')
+                this.reset()
+              }, 1000)
+            }
+          })
+        }
+      })
+    }
   }
 
   pick = (e) => {
